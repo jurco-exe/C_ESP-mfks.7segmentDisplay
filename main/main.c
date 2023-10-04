@@ -4,38 +4,42 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 
-const gpio_num_t B = GPIO_NUM_4;
-const gpio_num_t A = GPIO_NUM_5;
-const gpio_num_t C = GPIO_NUM_18;
-const gpio_num_t D = GPIO_NUM_19;
-const gpio_num_t E = GPIO_NUM_21;
-const gpio_num_t F = GPIO_NUM_22;
-const gpio_num_t G = GPIO_NUM_23;
+// Define GPIO pins for the 7-segment display segments
+#define SEG_A GPIO_NUM_5
+#define SEG_B GPIO_NUM_4
+#define SEG_C GPIO_NUM_18
+#define SEG_D GPIO_NUM_19
+#define SEG_E GPIO_NUM_21
+#define SEG_F GPIO_NUM_22
+#define SEG_G GPIO_NUM_23
 
-const gpio_num_t BUTTON = GPIO_NUM_16;
+// Define GPIO pin for the button
+#define BUTTON GPIO_NUM_16
 
-const uint8_t digitSegments[15][7] = {
-    { 1, 1, 1, 1, 1, 1, 0},  //0
-    { 0, 1, 1, 0, 0, 0, 0},  //1
-    { 1, 1, 0, 1, 1, 0, 1},  //2
-    { 1, 1, 1, 1, 0, 0, 1},  //3
-    { 0, 1, 1, 0, 0, 1, 1},  //4
-    { 1, 0, 1, 1, 0, 1, 1},  //5
-    { 1, 0, 1, 1, 1, 1, 1},  //6
-    { 1, 1, 1, 0, 0, 0, 0},  //7
-    { 1, 1, 1, 1, 1, 1, 1},  //8
-    { 1, 1, 1, 1, 0, 1, 1},  //9
-    { 1, 1, 1, 0, 1, 1, 1},  //a
-    { 0, 0, 1, 1, 1, 1, 1},  //b
-    { 1, 0, 0, 1, 1, 1, 0},  //c
-    { 0, 1, 1, 1, 1, 0, 1},  //d
-    { 1, 0, 0, 1, 1, 1, 1},  //e
-    { 1, 0, 0, 0, 1, 0, 0},  //f
+// Define the 7-segment display patterns
+const uint8_t digitSegments[16][7] = {
+    {1, 1, 1, 1, 1, 1, 0},  // 0
+    {0, 1, 1, 0, 0, 0, 0},  // 1
+    {1, 1, 0, 1, 1, 0, 1},  // 2
+    {1, 1, 1, 1, 0, 0, 1},  // 3
+    {0, 1, 1, 0, 0, 1, 1},  // 4
+    {1, 0, 1, 1, 0, 1, 1},  // 5
+    {1, 0, 1, 1, 1, 1, 1},  // 6
+    {1, 1, 1, 0, 0, 0, 0},  // 7
+    {1, 1, 1, 1, 1, 1, 1},  // 8
+    {1, 1, 1, 1, 0, 1, 1},  // 9
+    {1, 1, 1, 0, 1, 1, 1},  // A
+    {0, 0, 1, 1, 1, 1, 1},  // B
+    {1, 0, 0, 1, 1, 1, 0},  // C
+    {0, 1, 1, 1, 1, 0, 1},  // D
+    {1, 0, 0, 1, 1, 1, 1},  // E
+    {1, 0, 0, 0, 1, 0, 0}   // F
 };
+
+const gpio_num_t segments[7] = {SEG_A, SEG_B, SEG_C, SEG_D, SEG_E, SEG_F, SEG_G};
 
 void board_config()
 {
-    gpio_num_t segments[7] = {A, B, C, D, E, F, G}; // Local array
 
     for (int i = 0; i < 7; i++) {
         gpio_reset_pin(segments[i]);
@@ -47,29 +51,27 @@ void board_config()
     gpio_set_pull_mode(BUTTON, GPIO_PULLUP_ONLY);
 }
 
+// Function to check if the button is pressed
 bool is_button_pressed()
 {
     return (gpio_get_level(BUTTON) == 0);
 }
 
+// Function to generate a random digit or letter
 int get_random_digit(){
     return rand() % 16;
 }
 
-void display(int i){
+// Function to display a digit or letter on the 7-segment display
+void display(int i)
+{
     for (int j = 0; j < 7; j++) {
-        gpio_set_level(A, digitSegments[i][0]);
-    gpio_set_level(B, digitSegments[i][1]);
-    gpio_set_level(C, digitSegments[i][2]);
-    gpio_set_level(D, digitSegments[i][3]);
-    gpio_set_level(E, digitSegments[i][4]);
-    gpio_set_level(F, digitSegments[i][5]);
-    gpio_set_level(G, digitSegments[i][6]);
+        gpio_set_level(segments[j], digitSegments[i][j]);
     }
 }
 
-void app_main(void)
-{
+void app_main(void){
+    // Configure GPIO pins
     board_config();
 
     int last_presses = -1;
@@ -77,13 +79,17 @@ void app_main(void)
 
     while (1)
     {
+        // Check if the button is pressed
         if (is_button_pressed())
         {
-            if (!button_was_pressed) // Only change once on button press
+            // Only change the display once on button press
+            if (!button_was_pressed)
             {
+                // Generate a random digit or letter
                 int presses = get_random_digit();
                 if (presses != last_presses)
                 {
+                    // Display the generated digit or letter
                     display(presses);
                     last_presses = presses;
                 }
@@ -94,6 +100,6 @@ void app_main(void)
         {
             button_was_pressed = false;
         }
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Delay to avoid rapid updates
     }
 }
