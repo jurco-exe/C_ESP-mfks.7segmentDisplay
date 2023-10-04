@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "hello_world",
-    "project_version":    "1",
+    "project_version":    "7ebfabc-dirty",
     "project_path":       "/home/jurco/blink/hello_world",
     "idf_path":           "/home/jurco/esp/esp-idf",
     "build_dir":          "/home/jurco/blink/hello_world/build",
@@ -790,7 +790,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/jurco/blink/hello_world/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/jurco/blink/hello_world/main/hello_world_main.c" ],
+            "sources": [ "/home/jurco/blink/hello_world/main/main.c" ],
             "include_dirs": []
         },
         "mbedtls": {
