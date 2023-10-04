@@ -52,39 +52,47 @@ bool is_button_pressed()
     return (gpio_get_level(BUTTON) == 0);
 }
 
+int get_random_digit(){
+    return rand() % 16;
+}
+
 void display(int i){
-    gpio_set_level(A,digitSegments[i][0]);
-    gpio_set_level(B,digitSegments[i][1]);
-    gpio_set_level(C,digitSegments[i][2]);
-    gpio_set_level(D,digitSegments[i][3]);
-    gpio_set_level(E,digitSegments[i][4]);
-    gpio_set_level(F,digitSegments[i][5]);
-    gpio_set_level(G,digitSegments[i][6]);
+    for (int j = 0; j < 7; j++) {
+        gpio_set_level(A, digitSegments[i][0]);
+    gpio_set_level(B, digitSegments[i][1]);
+    gpio_set_level(C, digitSegments[i][2]);
+    gpio_set_level(D, digitSegments[i][3]);
+    gpio_set_level(E, digitSegments[i][4]);
+    gpio_set_level(F, digitSegments[i][5]);
+    gpio_set_level(G, digitSegments[i][6]);
+    }
 }
 
 void app_main(void)
 {
     board_config();
 
-    int presses = 0;
-    bool has_been_pressed = false;
+    int last_presses = -1;
+    bool button_was_pressed = false;
 
     while (1)
     {
-        display(presses);
-
-        if(is_button_pressed()){
-            if(!has_been_pressed){
-                if(presses < 15){
-                    presses += 1;
-                }else{
-                    presses = 0;
+        if (is_button_pressed())
+        {
+            if (!button_was_pressed) // Only change once on button press
+            {
+                int presses = get_random_digit();
+                if (presses != last_presses)
+                {
+                    display(presses);
+                    last_presses = presses;
                 }
-                has_been_pressed = true;
+                button_was_pressed = true;
             }
         }
-        else{
-            has_been_pressed = false;
+        else
+        {
+            button_was_pressed = false;
         }
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
