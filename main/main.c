@@ -5,101 +5,48 @@
 #include "driver/gpio.h"
 
 // Define GPIO pins for the 7-segment display segments
-#define SEG_A GPIO_NUM_5
-#define SEG_B GPIO_NUM_4
-#define SEG_C GPIO_NUM_18
-#define SEG_D GPIO_NUM_19
-#define SEG_E GPIO_NUM_21
-#define SEG_F GPIO_NUM_22
-#define SEG_G GPIO_NUM_23
+#define WHITE_L GPIO_NUM_23
+#define GREEN_L GPIO_NUM_22
+#define YELLOW_L GPIO_NUM_21
+#define RED_L GPIO_NUM_19
+#define RED_R GPIO_NUM_18
+#define YELLOW_R GPIO_NUM_5
+#define GREEN_R GPIO_NUM_4
+#define WHITE_R GPIO_NUM_15
 
-// Define GPIO pin for the button
-#define BUTTON GPIO_NUM_16
-
-// Define the 7-segment display patterns
-const uint8_t digitSegments[16][7] = {
-    {1, 1, 1, 1, 1, 1, 0},  // 0
-    {0, 1, 1, 0, 0, 0, 0},  // 1
-    {1, 1, 0, 1, 1, 0, 1},  // 2
-    {1, 1, 1, 1, 0, 0, 1},  // 3
-    {0, 1, 1, 0, 0, 1, 1},  // 4
-    {1, 0, 1, 1, 0, 1, 1},  // 5
-    {1, 0, 1, 1, 1, 1, 1},  // 6
-    {1, 1, 1, 0, 0, 0, 0},  // 7
-    {1, 1, 1, 1, 1, 1, 1},  // 8
-    {1, 1, 1, 1, 0, 1, 1},  // 9
-    {1, 1, 1, 0, 1, 1, 1},  // A
-    {0, 0, 1, 1, 1, 1, 1},  // B
-    {1, 0, 0, 1, 1, 1, 0},  // C
-    {0, 1, 1, 1, 1, 0, 1},  // D
-    {1, 0, 0, 1, 1, 1, 1},  // E
-    {1, 0, 0, 0, 1, 0, 0}   // F
-};
-
-const gpio_num_t segments[7] = {SEG_A, SEG_B, SEG_C, SEG_D, SEG_E, SEG_F, SEG_G};
+const gpio_num_t diods[8] = {WHITE_L, GREEN_L, YELLOW_L, RED_L, RED_R, YELLOW_R, GREEN_R, WHITE_R};
 
 void board_config()
 {
-
-    for (int i = 0; i < 7; i++) {
-        gpio_reset_pin(segments[i]);
-        gpio_set_direction(segments[i], GPIO_MODE_OUTPUT);
-    }
-
-    gpio_reset_pin(BUTTON);
-    gpio_set_direction(BUTTON, GPIO_MODE_INPUT);
-    gpio_set_pull_mode(BUTTON, GPIO_PULLUP_ONLY);
-}
-
-// Function to check if the button is pressed
-bool is_button_pressed()
-{
-    return (gpio_get_level(BUTTON) == 0);
-}
-
-// Function to generate a random digit or letter
-int get_random_digit(){
-    return rand() % 16;
-}
-
-// Function to display a digit or letter on the 7-segment display
-void display(int i)
-{
-    for (int j = 0; j < 7; j++) {
-        gpio_set_level(segments[j], digitSegments[i][j]);
+    for (int i = 0; i < 8; i++) {
+        gpio_reset_pin(diods[i]);
+        gpio_set_direction(diods[i], GPIO_MODE_OUTPUT);
     }
 }
 
-void app_main(void){
-    // Configure GPIO pins
+void night_rider_left_to_right() {
+    for (int i = 0; i < 8; i++) {
+        gpio_set_level(diods[i], 1);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        gpio_set_level(diods[i], 0);
+    }
+}
+
+void night_rider_right_to_left() {
+    for (int i = 7; i >= 0; i--) {
+        gpio_set_level(diods[i], 1);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        gpio_set_level(diods[i], 0);
+    }
+}
+
+void app_main(void) {
     board_config();
 
-    int last_presses = -1;
-    bool button_was_pressed = false;
-
-    while (1)
-    {
-        // Check if the button is pressed
-        if (is_button_pressed())
-        {
-            // Only change the display once on button press
-            if (!button_was_pressed)
-            {
-                // Generate a random digit or letter
-                int presses = get_random_digit();
-                if (presses != last_presses)
-                {
-                    // Display the generated digit or letter
-                    display(presses);
-                    last_presses = presses;
-                }
-                button_was_pressed = true;
-            }
-        }
-        else
-        {
-            button_was_pressed = false;
-        }
-        vTaskDelay(10 / portTICK_PERIOD_MS); // Delay to avoid rapid updates
+    while (1) {
+        night_rider_left_to_right();
+        // vTaskDelay(1000 / portTICK_PERIOD_MS); 
+        night_rider_right_to_left();
+        // vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }

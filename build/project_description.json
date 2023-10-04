@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "hello_world",
-    "project_version":    "ebf6379-dirty",
+    "project_version":    "3b9b67e-dirty",
     "project_path":       "/home/jurco/blink/hello_world",
     "idf_path":           "/home/jurco/esp/esp-idf",
     "build_dir":          "/home/jurco/blink/hello_world/build",
